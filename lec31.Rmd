@@ -137,7 +137,7 @@ $$\P{-z_{\alpha/2} < \frac{\ol{X} - \mu}{\sigma/\sqrt{n}} < z_{\alpha/2}} = 1 - 
 \pause For the C.I., unwrap to isolate $\mu$ in the middle. For the R.R., put $\mu=\mu_0$ and unwrap to isolate $\ol{X}$ in the middle.
 
 \pause The following is true:
-$$\text{Reject $H_0$ at level $\alpha$} \qquad \iff \qquad 100\cdot(1-\alpha)\% \text{ C.I. contains } \mu_0$$
+$$\text{Reject $H_0$ at level $\alpha$} \qquad \iff \qquad 100\cdot(1-\alpha)\% \text{ C.I. does not contain} \mu_0$$
 
 ## the "one-sample t test"
 
