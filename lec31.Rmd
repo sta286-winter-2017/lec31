@@ -1,0 +1,216 @@
+---
+title: "STA286 Lecture 30"
+author: "Neil Montgomery"
+date: "Last edited: `r format(Sys.time(), '%Y-%m-%d %H:%M')`"
+output: 
+  beamer_presentation:
+    keep_tex: TRUE
+    incremental: TRUE
+#    df_print: tibble
+    fig_caption: FALSE
+classoption: aspectratio=169
+header-includes:
+- \renewcommand{\le}{\leqslant}
+- \renewcommand{\ge}{\geqslant}
+- \renewcommand\P[1]{P{\left(#1\right)}}
+- \newcommand\F[1]{F_{\tiny{#1}}}
+- \newcommand\f[1]{f_{\tiny{#1}}}
+- \newcommand\p[1]{p_{\tiny{#1}}}
+- \newcommand\M[1]{M_{\tiny{#1}}}
+- \newcommand\V[1]{\text{Var}\!\left(#1\right)}
+- \newcommand\E[1]{E\!\left(#1\right)}
+- \newcommand\N[1]{N_{\tiny{#1}}}
+- \newcommand\ol{\overline}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE,
+                      dev = 'pdf', fig.width=5, fig.asp=0.6, fig.align = 'center')
+options(tibble.width=70, tibble.print_max=5)
+library(tidyverse)
+```
+
+## what hath 0.05 wrought?
+
+How to misuse hypothesis testing to destroy the universe:
+
+1. Believe that rejecting $H_0$ means that $H_0$ is false, and not rejecting $H_0$ means $H_0$ is true.
+
+2. Don't worry about the actual effect size. Just worry about rejecting $H_0$.
+
+3. Be a journal that only accepts publications in which $H_0$ is rejected.
+
+4. Be a researcher who only publishes results in which $H_0$ is rejected.
+
+5. Believe in the sanctity of $\alpha=0.05$.
+
+5. Perform as many hypothesis tests as you like on the same dataset. 
+
+6. Use "one-sided alternatives" because you think you really know what you are doing.
+
+7. Think that you really know what you are doing.
+
+# p-values
+
+## a story that never really happened
+
+```{r}
+options(digits=3)
+```
+
+Are the doors the right width or not?
+\begin{align*}
+H_0 &: \mu=700\\
+H_1 &: \mu\ne 700
+\end{align*}
+\pause Use population model $N(\mu, \sigma=0.5)$. Set $\alpha = 0.05$. Plan to collect a sample of size $n=10$. The rejection region is:
+\begin{align*}
+\left\{\ol{X} < 700-1.96\frac{0.5}{\sqrt{10}}\right\} &\cup \left\{\ol{X} > 700+1.96\frac{0.5}{\sqrt{10}}\right\}\\
+\left\{\ol{X} < `r 700-1.96*0.5/sqrt(10)`\right\} &\cup \left\{\ol{X} > `r 700+1.96*0.5/sqrt(10)`\right\}
+\end{align*}
+\pause You actually measure 10 doors. The sample average is $\ol{x} = 699.68$.
+\pause We have a 2319! PUSH THE RED BUTTON!!! \textbf{REJECT THE NULL! REJECT THE NULL!}
+
+## a story that never really happened
+
+So you cancel the contract with the supplier, who goes out of business. 
+
+\pause It turns out that the summer student who compiled the data made a small error in recording one of the door widths - putting 700.2 instead of 700.4 for that one record.
+
+\pause So actually $\ol{x}$ is 699.70. 
+
+\pause Everthing has \textbf{\textit{completely changed}}. $H_0$ is not rejected. FAIL TO REJECT! FAIL TO REJECT! Situation is niner-niner-zero.
+
+But it's too late. The market has decided. Lives are destroyed. Demagogues rise to power in the wake of mass disillusionment. 
+
+\pause Another option is to use something called a \textit{p-value}.
+
+## p-value
+
+A p-value is the probability (calculated using the $H_0$ parameter value) of observing a value of the test statistic "more extreme" that what was actually observed.
+
+"More extreme" just means further away (in absolute value) than the $H_0$ parameter value.
+
+\pause In the Doors example, $\ol{x}$ was thought at first to be 699.68, which is 0.32mm away from 700. The probability of being \textit{more than} 0.32mm away from 700 is:
+$$P(\ol{X} < 699.68) + P(\ol{X} > 700.32) = `r pnorm(699.68, 700, 0.5/sqrt(10))` + `r pnorm(699.68, 700, 0.5/sqrt(10))` = `r 2*pnorm(699.68, 700, 0.5/sqrt(10))`$$
+
+\pause After the correction, $\ol{x}$ is now 699.70. The p-value is now:
+$$P(\ol{X} < 699.70) + P(\ol{X} > 700.30) = `r pnorm(699.70, 700, 0.5/sqrt(10))` + `r pnorm(699.70, 700, 0.5/sqrt(10))` = `r 2*pnorm(699.70, 700, 0.5/sqrt(10))`$$
+
+\pause Too bad you didn't know about p-values before causing WWIII.
+
+## the use and interpretation of p-values
+
+P-values should be used to evaluate the evidence against $H_0$.
+
+The smaller the p-value, the stronger the evidence.
+
+\pause There is no magic threshold for how small is "small enough." \pause So don't ask.
+\pause Please stop asking.
+
+\pause Some language you might overhear me using:
+
+* 0.126 might be "no evidence"
+
+* 0.063 might be "weak evidence"
+
+* 0.0031 might be "evidence"
+
+* 0.0000014 might be "strong evidence"
+
+* $3\times 10^{-15}$ might be "overwhelming evidence"
+
+\pause Think in terms of orders of magnitude.
+
+## things that annoy me
+
+When people ask me how small a p-value "has" to be.
+
+\pause When people compute a p-value, and then say "The p-value is smaller than 0.05, so I reject the null hypothesis."
+
+## $100\cdot(1-\alpha)\%$ C.I. versus hypothesis test with size $\alpha$
+
+A C.I. formula and a rejection region formula for $H_0:\mu=\mu_0$ versus $H_1:\mu\ne\mu_0$ will be based on (something like):
+
+$$\P{-z_{\alpha/2} < \frac{\ol{X} - \mu}{\sigma/\sqrt{n}} < z_{\alpha/2}} = 1 - \alpha$$
+
+\pause For the C.I., unwrap to isolate $\mu$ in the middle. For the R.R., put $\mu=\mu_0$ and unwrap to isolate $\ol{X}$ in the middle.
+
+\pause The following is true:
+$$\text{Reject $H_0$ at level $\alpha$} \qquad \iff \qquad 100\cdot(1-\alpha)\% \text{ C.I. contains } \mu_0$$
+
+## the "one-sample t test"
+
+You'll never know $\sigma$, so use the data to estimate $\sigma$ with $s$, as usual.
+
+```{r}
+s <- sd(rnorm(10, 699.70, 0.5))
+```
+
+
+From the Doors example where $n=10$ and $\ol{x} = 699.70$, suppose also that that $s=`r s`$. 
+
+\pause The p-value is now calculated based on:
+$$\frac{\ol{X}-700}{s/\sqrt{n}} \sim t_{9}$$
+
+$$P(\ol{X} < 699.70) + P(\ol{X} > 700.30) = P(t_9 < `r (699.70-700)/(s/sqrt(10))`) + P(t_9 > `r (700.30-700)/(s/sqrt(10))`) =
+`r pt((699.70-700)/(s/sqrt(10)), 9)` + `r pt((699.70-700)/(s/sqrt(10)), 9)` = `r 2* pt((699.70-700)/(s/sqrt(10)), 9)`$$
+
+
+## the "two-sample t-test"
+
+A more realistic hypothesis testing scenario. 
+
+Two populations: $N(\mu_1, \sigma_1)$ and $N(\mu_2, \sigma_2)$. The obvious hypotheses will always be:
+\begin{align*}
+H_0 &: \mu_1=\mu_2\\
+H_1 &: \mu_1\ne\mu_2
+\end{align*}
+The "parameter" is $\theta = \mu_1 - \mu_2$, estimated (as usual) by $\ol{X_1}-\ol{X_2}$ from samples of sizes $n_1$ and $n_2$.
+
+Two possibilities:
+$$\frac{\ol{X_1} - \ol{X_2}}{s_p\sqrt{\frac{1}{n_1} + \frac{1}{n_2}}} \sim t_{n_1+n_2-2} \qquad \text{or} \qquad \frac{\ol{X_1} - \ol{X_2}}{\sqrt{\frac{s^2_1}{n_1}+\frac{s^2_2}{n_2}}} \sim t_\nu$$
+
+## two-sample t-test example
+
+Modified from 10.106. Can nutritional counselling change blood cholesterol level? A group of 15 people received counseling for 8 weeks. A group of 18 people did not.
+
+The readings are made available by the textbook in the following terrible manner:
+
+\includegraphics[scale=0.5]{bullshit.PNG}
+
+## two-sample t-test example
+
+A Real Dataset:
+
+```{r}
+
+library(tidyverse)
+cholesterol <- read.delim("Ex10.106.txt") %>% 
+  gather(key=Group, value=Cholesterol, na.rm = TRUE) %>% 
+  mutate(Group=factor(Group))
+cholesterol
+```
+
+## two-sample t-test example - plot
+
+```{r}
+cholesterol %>% 
+  ggplot(aes(x=Group, y=Cholesterol)) + geom_boxplot()
+```
+
+## two-sample t-test example - equal variance version
+
+```{r}
+options(digits=5)
+cholesterol %>% group_by(Group) %>% summarize(n=n(), X_bar = mean(Cholesterol), S=sd(Cholesterol))
+cholesterol %>% t.test(Cholesterol ~ Group, data=., var.equal=TRUE)
+```
+
+
+## two-sample t-test example - no variance assumption version
+
+```{r}
+
+cholesterol %>% t.test(Cholesterol ~ Group, data=.)
+```
